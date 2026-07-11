@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 
 interface AccessibilityToggleProps {
   /** Whether accessibility mode is currently on */

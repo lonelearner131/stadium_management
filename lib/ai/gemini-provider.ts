@@ -9,10 +9,38 @@
  * @module ai/gemini-provider
  */
 
-import { GoogleGenerativeAI, SchemaType, type FunctionDeclaration, type FunctionDeclarationSchemaProperty } from '@google/generative-ai';
-import type { AIProvider, GenerateOptions, StreamChunk, ToolCall } from '@/lib/ai/provider';
-import { toolDefinitions, executeTool } from '@/lib/ai/tools';
+import { GoogleGenerativeAI, SchemaType, type FunctionDeclaration, type FunctionDeclarationSchemaProperty, type ChatSession, type Part } from '@google/generative-ai';
+import type { AIProvider, GenerateOptions, StreamChunk } from '@/lib/ai/provider';
+import { toolDefinitions } from '@/lib/ai/tools';
+import { handleGeminiToolCall } from '@/lib/ai/shared';
 import { normalizeError } from '@/lib/errors';
+
+function mapHistory(history: { role: string; content: string }[]) {
+  return history
+    .filter((msg) => msg.role !== 'system')
+    .map((msg) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+}
+
+async function* processGeminiChunk(
+  chunk: unknown,
+  chat: ChatSession,
+  accessibilityMode: boolean
+): AsyncIterable<StreamChunk> {
+  const candidate = (chunk as { candidates?: { content: { parts: Part[] } }[] }).candidates?.[0];
+  if (!candidate) return;
+
+  for (const part of candidate.content.parts) {
+    if (part.text) {
+      yield { type: 'text' as const, content: part.text };
+    }
+    if (part.functionCall) {
+      yield* handleGeminiToolCall(chat, part, accessibilityMode);
+    }
+  }
+}
 
 /**
  * Maps our tool parameter definitions to Google's FunctionDeclaration format.
@@ -86,13 +114,7 @@ export class GeminiProvider implements AIProvider {
         tools: toGeminiTools(),
       });
 
-      // Build conversation history
-      const history = options.history
-        .filter((msg) => msg.role !== 'system')
-        .map((msg) => ({
-          role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content }],
-        }));
+      const history = mapHistory(options.history);
 
       const chat = model.startChat({ history });
 
@@ -100,52 +122,7 @@ export class GeminiProvider implements AIProvider {
       const streamResult = await chat.sendMessageStream(options.message);
 
       for await (const chunk of streamResult.stream) {
-        const candidate = chunk.candidates?.[0];
-        if (!candidate) continue;
-
-        for (const part of candidate.content.parts) {
-          if (part.text) {
-            yield { type: 'text', content: part.text };
-          }
-
-          if (part.functionCall) {
-            const toolCall: ToolCall = {
-              name: part.functionCall.name,
-              args: (part.functionCall.args as Record<string, string>) ?? {},
-            };
-
-            yield { type: 'tool_call', toolCall };
-
-            // Execute the tool
-            const toolResult = executeTool(
-              toolCall,
-              options.sessionContext.accessibilityMode
-            );
-
-            yield { type: 'tool_result', toolResult };
-
-            // Send tool result back to the model
-            const functionResponseResult = await chat.sendMessageStream([
-              {
-                functionResponse: {
-                  name: toolCall.name,
-                  response: toolResult.result as Record<string, unknown>,
-                },
-              },
-            ]);
-
-            for await (const responseChunk of functionResponseResult.stream) {
-              const responseCandidate = responseChunk.candidates?.[0];
-              if (!responseCandidate) continue;
-
-              for (const responsePart of responseCandidate.content.parts) {
-                if (responsePart.text) {
-                  yield { type: 'text', content: responsePart.text };
-                }
-              }
-            }
-          }
-        }
+        yield* processGeminiChunk(chunk, chat, options.sessionContext.accessibilityMode);
       }
 
       yield { type: 'done' };

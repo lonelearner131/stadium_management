@@ -11,7 +11,7 @@
 
 import type { AIProvider, GenerateOptions, StreamChunk, ToolCall } from '@/lib/ai/provider';
 import { executeTool } from '@/lib/ai/tools';
-import { getTranslations } from '@/lib/i18n';
+import { getTranslations, type TranslationDictionary } from '@/lib/i18n';
 
 /** Pattern-matched intent with associated tool call */
 interface Intent {
@@ -201,113 +201,102 @@ const intents: Intent[] = [
   },
 ];
 
-/**
- * Formats a tool result into a human-readable response string.
- *
- * @param toolResult - The tool result to format
- * @returns A formatted response string
- */
-function formatToolResult(toolResult: Record<string, unknown>): string {
-  if (toolResult.error) {
-    return String(toolResult.message ?? 'Sorry, I couldn\'t find that information.');
-  }
-
-  const name = toolResult.toolName as string | undefined;
-
-  // Format based on tool type
-  if (name === 'findGate' || toolResult.gate) {
-    const parts = [`Your nearest gate is **${toolResult.gate}** (${toolResult.zone} zone).`];
-    parts.push(`Walk time: approximately **${toolResult.walkTimeMinutes} minutes**.`);
-    parts.push(`Nearest parking: ${toolResult.nearestParking}.`);
-    if (toolResult.accessible !== undefined) {
-      parts.push(
-        toolResult.hasRamp ? '♿ Ramp access available.' : '',
-        toolResult.hasElevator ? 'Elevator available.' : ''
-      );
-      if (toolResult.accessibleRoute) {
-        parts.push(`\nAccessible route: ${toolResult.accessibleRoute}`);
-      }
-      if (toolResult.warning) {
-        parts.push(`\n⚠️ ${toolResult.warning}`);
-        if (toolResult.nearestAccessibleSection) {
-          parts.push(`Nearest accessible section: ${toolResult.nearestAccessibleSection}`);
-        }
+const formatters: Record<string, (result: Record<string, unknown>) => string> = {
+  findGate: (res) => {
+    const parts = [`Your nearest gate is **${res.gate}** (${res.zone} zone).`];
+    parts.push(`Walk time: approximately **${res.walkTimeMinutes} minutes**.`);
+    parts.push(`Nearest parking: ${res.nearestParking}.`);
+    if (res.accessible !== undefined) {
+      parts.push(res.hasRamp ? '♿ Ramp access available.' : '', res.hasElevator ? 'Elevator available.' : '');
+      if (res.accessibleRoute) parts.push(`\nAccessible route: ${res.accessibleRoute}`);
+      if (res.warning) {
+        parts.push(`\n⚠️ ${res.warning}`);
+        if (res.nearestAccessibleSection) parts.push(`Nearest accessible section: ${res.nearestAccessibleSection}`);
       }
     }
     return parts.filter(Boolean).join(' ');
-  }
-
-  if (name === 'getAccessibleRoute' || toolResult.stepFree !== undefined) {
+  },
+  getAccessibleRoute: (res) => {
     const parts = [
-      `**Accessible Route** from ${toolResult.from} to ${toolResult.to}:`,
-      String(toolResult.description),
-      `Estimated time: **${toolResult.estimatedMinutes} minutes**.`,
-      `Step-free: ${toolResult.stepFree ? '✅ Yes' : '❌ No'}`,
+      `**Accessible Route** from ${res.from} to ${res.to}:`,
+      String(res.description),
+      `Estimated time: **${res.estimatedMinutes} minutes**.`,
+      `Step-free: ${res.stepFree ? '✅ Yes' : '❌ No'}`,
     ];
-    if (Array.isArray(toolResult.landmarks) && toolResult.landmarks.length > 0) {
-      parts.push(`Landmarks: ${(toolResult.landmarks as string[]).join(' → ')}`);
+    if (Array.isArray(res.landmarks) && res.landmarks.length > 0) {
+      parts.push(`Landmarks: ${(res.landmarks as string[]).join(' → ')}`);
     }
-    if (toolResult.note) {
-      parts.push(`\n📝 ${toolResult.note}`);
-    }
+    if (res.note) parts.push(`\n📝 ${res.note}`);
     return parts.join('\n');
-  }
-
-  if (name === 'getCrowdStatus' || toolResult.density !== undefined) {
-    const densityEmoji = toolResult.density === 'low' ? '🟢' : toolResult.density === 'medium' ? '🟡' : '🔴';
+  },
+  getCrowdStatus: (res) => {
+    const emoji = res.density === 'low' ? '🟢' : res.density === 'medium' ? '🟡' : '🔴';
     const parts = [
-      `**${toolResult.location}** — Crowd density: ${densityEmoji} **${String(toolResult.density).toUpperCase()}**`,
-      `Estimated wait: ~${toolResult.estimatedWaitMinutes} minutes.`,
-      String(toolResult.advice ?? ''),
+      `**${res.location}** — Crowd density: ${emoji} **${String(res.density).toUpperCase()}**`,
+      `Estimated wait: ~${res.estimatedWaitMinutes} minutes.`,
+      String(res.advice ?? ''),
     ];
-    if (toolResult.alternateRecommendation) {
-      parts.push(`💡 Recommended alternative: **${toolResult.alternateRecommendation}**`);
-    }
+    if (res.alternateRecommendation) parts.push(`💡 Recommended alternative: **${res.alternateRecommendation}**`);
     return parts.join('\n');
-  }
-
-  if (name === 'getTransportOptions' || toolResult.options) {
-    const options = toolResult.options as Array<Record<string, unknown>>;
+  },
+  getTransportOptions: (res) => {
+    const options = res.options as Array<Record<string, unknown>>;
     const parts = [`**Transportation options** (sorted by sustainability):\n`];
     for (const opt of options) {
-      parts.push(
-        `• **${opt.name}** (${opt.type})`,
-        `  ${opt.sustainabilityNote}`,
-        `  Schedule: ${opt.schedule}`,
-        `  Nearest: ${opt.nearestGate} (~${opt.walkToGateMinutes} min walk)`,
-        `  ${opt.accessible ? '♿ Accessible' : '⚠️ May not be fully accessible'}`,
-        ''
-      );
+      parts.push(`• **${opt.name}** (${opt.type})`, `  ${opt.sustainabilityNote}`, `  Schedule: ${opt.schedule}`, `  Nearest: ${opt.nearestGate} (~${opt.walkToGateMinutes} min walk)`, `  ${opt.accessible ? '♿ Accessible' : '⚠️ May not be fully accessible'}`, '');
     }
     return parts.join('\n');
-  }
-
-  if (name === 'getAmenity' || toolResult.results) {
-    const results = toolResult.results as Array<Record<string, unknown>>;
-    const type = String(toolResult.type ?? 'amenity').replace(/_/g, ' ');
-    const parts = [`**Nearest ${type}${results.length > 1 ? 's' : ''}:**\n`];
+  },
+  getAmenity: (res) => {
+    const results = res.results as Array<Record<string, unknown>>;
+    const typeStr = String(res.type ?? 'amenity').replace(/_/g, ' ');
+    const parts = [`**Nearest ${typeStr}${results.length > 1 ? 's' : ''}:**\n`];
     for (const r of results.slice(0, 3)) {
       const notes: string[] = [];
       if (r.accessible) notes.push('♿ Accessible');
       if (r.familyFriendly) notes.push('👨‍👩‍👧 Family-friendly');
       if (r.sustainability) notes.push('🌱 Sustainability feature');
       if (Array.isArray(r.features)) notes.push(`Features: ${(r.features as string[]).join(', ')}`);
-
       parts.push(`• **${r.name}** — ${r.zone} zone, ${r.level} level`);
       if (notes.length > 0) parts.push(`  ${notes.join(' | ')}`);
       parts.push('');
     }
     return parts.join('\n');
+  },
+  translateQuickPhrase: (res) => {
+    return [
+      `"${res.originalPhrase}" is typically said as:`,
+      `**"${res.translatedPhrase}"**`,
+      `*Pronunciation: ${res.pronunciation}*`
+    ].join('\n');
   }
+};
 
-  if (name === 'translateQuickPhrase' || toolResult.translatedPhrase) {
-    if (toolResult.note) {
-      return `${toolResult.note}`;
-    }
-    return `**"${toolResult.originalPhrase}"** in ${toolResult.targetLanguage}: **"${toolResult.translatedPhrase}"**\n(Meaning: ${toolResult.meaning})`;
-  }
+/**
+ * Formats a tool result into a human-readable response string.
+ *
+ * @param toolResult - The tool result to format
+ * @returns A formatted response string
+ */
+function matchFallbackFormatter(toolResult: Record<string, unknown>): string | null {
+  if (toolResult.gate) return formatters.findGate(toolResult);
+  if (toolResult.stepFree !== undefined) return formatters.getAccessibleRoute(toolResult);
+  if (toolResult.density !== undefined) return formatters.getCrowdStatus(toolResult);
+  if (toolResult.options) return formatters.getTransportOptions(toolResult);
+  if (toolResult.results) return formatters.getAmenity(toolResult);
+  if (toolResult.translatedPhrase) return formatters.translateQuickPhrase(toolResult);
+  return null;
+}
 
-  // Generic fallback for unknown tool results
+function formatToolResult(toolResult: Record<string, unknown>): string {
+  if (toolResult.error) return String(toolResult.message ?? "Sorry, I couldn't find that information.");
+  
+  const name = toolResult.toolName as string | undefined;
+  if (name && formatters[name]) return formatters[name](toolResult);
+
+  const fallback = matchFallbackFormatter(toolResult);
+  if (fallback) return fallback;
+
   return JSON.stringify(toolResult, null, 2);
 }
 
@@ -316,35 +305,38 @@ function formatToolResult(toolResult: Record<string, unknown>): string {
  * Pattern-matches user messages to invoke tools and generate responses
  * without requiring any external API.
  */
+async function* yieldWords(text: string): AsyncIterable<StreamChunk> {
+  const words = text.split(' ');
+  for (let i = 0; i < words.length; i++) {
+    yield { type: 'text', content: (i === 0 ? '' : ' ') + words[i] };
+  }
+}
+
+function getUnmatchedResponse(message: string, t: TranslationDictionary): string {
+  const isGreeting = /\b(hi|hello|hey|howdy|good morning|good afternoon|good evening|hola|bonjour|مرحبا)\b/i.test(message);
+  if (isGreeting) return t.ui.welcomeMessage;
+  if (/\b(help|what can you do|menu|options)\b/i.test(message)) {
+    return 'I can help you with:\n\n• 🚪 **Finding your gate** — tell me your section number\n• ♿ **Accessible routes** — step-free paths with ramps and elevators\n• 👥 **Crowd status** — check how busy gates and zones are\n• 🚌 **Transportation** — trains, buses, shuttles, and sustainable options\n• 🚻 **Amenities** — restrooms, first aid, prayer rooms, family rooms\n• 🌱 **Sustainability** — water refill stations, recycling hubs\n• 🌍 **Translation** — common fan phrases in English, Spanish, French, Arabic\n\nJust ask naturally and I\'ll help!';
+  }
+  return 'I\'m here to help with stadium navigation and services at MetLife Stadium for FIFA World Cup 2026. You can ask me about finding your gate, accessible routes, crowd levels, transportation, restrooms, and more. How can I assist you?';
+}
+
 export class FallbackProvider implements AIProvider {
   readonly name = 'fallback';
 
-  /**
-   * Always available — this is the offline provider.
-   *
-   * @returns true
-   */
   isAvailable(): boolean {
     return true;
   }
 
-  /**
-   * Generates a streaming response using pattern matching and tools.
-   *
-   * @param options - Generation options
-   * @returns Async iterable of stream chunks
-   */
   async *generateStream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     const { message, sessionContext } = options;
     const t = getTranslations(sessionContext.language);
 
-    // Check if we should ask about accessibility (first message, hasn't been asked)
     const shouldAskAccessibility =
       !sessionContext.hasAskedAboutAccessibility &&
       !sessionContext.accessibilityMode &&
       options.history.length <= 2;
 
-    // Try to match an intent
     let matched = false;
     for (const intent of intents) {
       const match = message.match(intent.pattern);
@@ -353,67 +345,26 @@ export class FallbackProvider implements AIProvider {
         const toolCall = intent.toolCall(match, message);
 
         if (toolCall) {
-          // Emit tool call
           yield { type: 'tool_call', toolCall };
-
-          // Execute tool
           const toolResult = executeTool(toolCall, sessionContext.accessibilityMode);
           yield { type: 'tool_result', toolResult };
 
-          // Format and stream the response
           const resultData = toolResult.result as Record<string, unknown>;
-          // Attach toolName for formatting
           resultData.toolName = toolResult.toolName;
-          const response = formatToolResult(resultData);
-
-          // Stream character by character for perceived performance
-          const words = response.split(' ');
-          for (let i = 0; i < words.length; i++) {
-            yield { type: 'text', content: (i === 0 ? '' : ' ') + words[i] };
-          }
+          yield* yieldWords(formatToolResult(resultData));
         } else {
-          // No tool call possible (missing params), ask for more info
-          const fallback = intent.fallbackResponse(match, message);
-          const words = fallback.split(' ');
-          for (let i = 0; i < words.length; i++) {
-            yield { type: 'text', content: (i === 0 ? '' : ' ') + words[i] };
-          }
+          yield* yieldWords(intent.fallbackResponse(match, message));
         }
-
         break;
       }
     }
 
-    // No intent matched — general help response
     if (!matched) {
-      // Check if it's a greeting
-      const isGreeting = /\b(hi|hello|hey|howdy|good morning|good afternoon|good evening|hola|bonjour|مرحبا)\b/i.test(message);
-
-      let response: string;
-      if (isGreeting) {
-        response = t.ui.welcomeMessage;
-      } else if (/\b(help|what can you do|menu|options)\b/i.test(message)) {
-        response =
-          'I can help you with:\n\n• 🚪 **Finding your gate** — tell me your section number\n• ♿ **Accessible routes** — step-free paths with ramps and elevators\n• 👥 **Crowd status** — check how busy gates and zones are\n• 🚌 **Transportation** — trains, buses, shuttles, and sustainable options\n• 🚻 **Amenities** — restrooms, first aid, prayer rooms, family rooms\n• 🌱 **Sustainability** — water refill stations, recycling hubs\n• 🌍 **Translation** — common fan phrases in English, Spanish, French, Arabic\n\nJust ask naturally and I\'ll help!';
-      } else {
-        response =
-          'I\'m here to help with stadium navigation and services at MetLife Stadium for FIFA World Cup 2026. You can ask me about finding your gate, accessible routes, crowd levels, transportation, restrooms, and more. How can I assist you?';
-      }
-
-      const words = response.split(' ');
-      for (let i = 0; i < words.length; i++) {
-        yield { type: 'text', content: (i === 0 ? '' : ' ') + words[i] };
-      }
+      yield* yieldWords(getUnmatchedResponse(message, t));
     }
 
-    // Add accessibility prompt if appropriate
     if (shouldAskAccessibility) {
-      const accessMsg =
-        '\n\nBy the way, do you need accessible routing? I can find step-free paths with ramps and elevators. Just let me know or toggle the ♿ accessibility mode.';
-      const words = accessMsg.split(' ');
-      for (let i = 0; i < words.length; i++) {
-        yield { type: 'text', content: (i === 0 ? '' : ' ') + words[i] };
-      }
+      yield* yieldWords('\n\nBy the way, do you need accessible routing? I can find step-free paths with ramps and elevators. Just let me know or toggle the ♿ accessibility mode.');
     }
 
     yield { type: 'done' };

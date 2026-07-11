@@ -205,6 +205,35 @@ export const toolDefinitions = [
  * @param accessibilityMode - Whether to include step-free route info
  * @returns Object with gate details, or an error message
  */
+function addAccessibilityInfoToGateResult(
+  result: Record<string, unknown>,
+  sectionData: { id: string; zone: string; accessible: boolean; hasCompanionSeats: boolean },
+  gate: { id: string; accessible: boolean; hasRamp: boolean; hasElevator: boolean }
+) {
+  result.accessible = gate.accessible;
+  result.hasRamp = gate.hasRamp;
+  result.hasElevator = gate.hasElevator;
+  result.hasCompanionSeats = sectionData.hasCompanionSeats;
+  result.sectionAccessible = sectionData.accessible;
+
+  if (!sectionData.accessible) {
+    const nearestAccessible = sections.find(
+      (s) => s.zone === sectionData.zone && s.accessible && s.id !== sectionData.id
+    );
+    result.warning = 'This section may not be fully accessible.';
+    result.nearestAccessibleSection = nearestAccessible?.id ?? 'Contact staff for assistance';
+  }
+
+  const route = accessibleRoutes.find(
+    (r) => r.from.includes(`Gate ${gate.id}`) && r.to.includes(`Section ${sectionData.id}`)
+  );
+  if (route) {
+    result.accessibleRoute = route.description;
+    result.routeLandmarks = route.landmarks;
+    result.routeEstimatedMinutes = route.estimatedMinutes;
+  }
+}
+
 export function findGate(
   section: string,
   accessibilityMode = false
@@ -234,33 +263,7 @@ export function findGate(
   };
 
   if (accessibilityMode) {
-    result.accessible = gate.accessible;
-    result.hasRamp = gate.hasRamp;
-    result.hasElevator = gate.hasElevator;
-    result.hasCompanionSeats = sectionData.hasCompanionSeats;
-    result.sectionAccessible = sectionData.accessible;
-
-    if (!sectionData.accessible) {
-      // Find nearest accessible section in the same zone
-      const nearestAccessible = sections.find(
-        (s) => s.zone === sectionData.zone && s.accessible && s.id !== sectionData.id
-      );
-      result.warning =
-        'This section may not be fully accessible.';
-      result.nearestAccessibleSection = nearestAccessible?.id ?? 'Contact staff for assistance';
-    }
-
-    // Find accessible route from gate to section
-    const route = accessibleRoutes.find(
-      (r) =>
-        r.from.includes(`Gate ${gate.id}`) &&
-        r.to.includes(`Section ${sectionData.id}`)
-    );
-    if (route) {
-      result.accessibleRoute = route.description;
-      result.routeLandmarks = route.landmarks;
-      result.routeEstimatedMinutes = route.estimatedMinutes;
-    }
+    addAccessibilityInfoToGateResult(result, sectionData, gate);
   }
 
   return result;
@@ -273,6 +276,25 @@ export function findGate(
  * @param to - Destination location
  * @returns Route details or a constructed accessible path
  */
+function findReverseAccessibleRoute(fromNorm: string, toNorm: string) {
+  const reverseRoute = accessibleRoutes.find(
+    (r) =>
+      r.from.toLowerCase().includes(toNorm.toLowerCase()) &&
+      r.to.toLowerCase().includes(fromNorm.toLowerCase())
+  );
+  if (reverseRoute) {
+    return {
+      from: fromNorm,
+      to: toNorm,
+      description: `Reverse of: ${reverseRoute.description}`,
+      stepFree: reverseRoute.stepFree,
+      estimatedMinutes: reverseRoute.estimatedMinutes,
+      landmarks: [...reverseRoute.landmarks].reverse(),
+    };
+  }
+  return null;
+}
+
 export function getAccessibleRoute(
   from: string,
   to: string
@@ -298,23 +320,8 @@ export function getAccessibleRoute(
     };
   }
 
-  // Try reverse direction
-  const reverseRoute = accessibleRoutes.find(
-    (r) =>
-      r.from.toLowerCase().includes(toNorm.toLowerCase()) &&
-      r.to.toLowerCase().includes(fromNorm.toLowerCase())
-  );
-
-  if (reverseRoute) {
-    return {
-      from: fromNorm,
-      to: toNorm,
-      description: `Reverse of: ${reverseRoute.description}`,
-      stepFree: reverseRoute.stepFree,
-      estimatedMinutes: reverseRoute.estimatedMinutes,
-      landmarks: [...reverseRoute.landmarks].reverse(),
-    };
-  }
+  const reverseMatch = findReverseAccessibleRoute(fromNorm, toNorm);
+  if (reverseMatch) return reverseMatch;
 
   // Construct a generic accessible route via the lower concourse
   return {
@@ -454,6 +461,57 @@ export function getAmenity(
  * @param targetLang - The target language code
  * @returns The translation result
  */
+function findTargetTranslation(
+  englishEquivalent: string,
+  targetPhrases: Record<string, string>,
+  phrase: string,
+  locale: string,
+  lang: string
+) {
+  for (const [targetPhrase, targetEnglish] of Object.entries(targetPhrases)) {
+    if (targetEnglish === englishEquivalent) {
+      return {
+        originalPhrase: phrase,
+        sourceLanguage: locale,
+        translatedPhrase: targetPhrase,
+        targetLanguage: lang,
+        meaning: englishEquivalent,
+      };
+    }
+  }
+  return null;
+}
+
+function searchPhraseInLocale(
+  locale: string,
+  dict: { phrases: Record<string, string> },
+  phraseLower: string,
+  phrase: string,
+  targetPhrases: Record<string, string>,
+  lang: string
+) {
+  for (const [originalPhrase, englishEquivalent] of Object.entries(dict.phrases as Record<string, string>)) {
+    if (originalPhrase.toLowerCase() === phraseLower || englishEquivalent.toLowerCase() === phraseLower) {
+      const result = findTargetTranslation(englishEquivalent, targetPhrases, phrase, locale, lang);
+      if (result) return result;
+    }
+  }
+  return null;
+}
+
+function searchPhraseAcrossLanguages(
+  phraseLower: string,
+  phrase: string,
+  targetPhrases: Record<string, string>,
+  lang: string
+) {
+  for (const [locale, dict] of Object.entries(translations)) {
+    const result = searchPhraseInLocale(locale, dict, phraseLower, phrase, targetPhrases, lang);
+    if (result) return result;
+  }
+  return null;
+}
+
 export function translateQuickPhrase(
   phrase: string,
   targetLang: string
@@ -470,25 +528,8 @@ export function translateQuickPhrase(
   const targetPhrases = translations[lang].phrases;
   const phraseLower = phrase.trim().toLowerCase();
 
-  // Search across all languages for the phrase
-  for (const [locale, dict] of Object.entries(translations)) {
-    for (const [originalPhrase, englishEquivalent] of Object.entries(dict.phrases)) {
-      if (originalPhrase.toLowerCase() === phraseLower || englishEquivalent.toLowerCase() === phraseLower) {
-        // Find the matching phrase in the target language
-        for (const [targetPhrase, targetEnglish] of Object.entries(targetPhrases)) {
-          if (targetEnglish === englishEquivalent) {
-            return {
-              originalPhrase: phrase,
-              sourceLanguage: locale,
-              translatedPhrase: targetPhrase,
-              targetLanguage: lang,
-              meaning: englishEquivalent,
-            };
-          }
-        }
-      }
-    }
-  }
+  const result = searchPhraseAcrossLanguages(phraseLower, phrase, targetPhrases, lang);
+  if (result) return result;
 
   return {
     originalPhrase: phrase,
@@ -531,30 +572,19 @@ export function executeTool(
     }
   }
 
-  let result: unknown;
+  const handlers: Record<string, (args: Record<string, string>, accMode: boolean) => unknown> = {
+    findGate: (args, accMode) => findGate(args.section ?? '', accMode),
+    getAccessibleRoute: (args) => getAccessibleRoute(args.from ?? '', args.to ?? ''),
+    getCrowdStatus: (args) => getCrowdStatus(args.gateOrZone ?? ''),
+    getTransportOptions: (args) => getTransportOptions(args.originArea ?? ''),
+    getAmenity: (args, accMode) => getAmenity(args.type ?? '', args.nearZone, accMode),
+    translateQuickPhrase: (args) => translateQuickPhrase(args.phrase ?? '', args.targetLang ?? 'en')
+  };
 
-  switch (name) {
-    case 'findGate':
-      result = findGate(args.section ?? '', accessibilityMode);
-      break;
-    case 'getAccessibleRoute':
-      result = getAccessibleRoute(args.from ?? '', args.to ?? '');
-      break;
-    case 'getCrowdStatus':
-      result = getCrowdStatus(args.gateOrZone ?? '');
-      break;
-    case 'getTransportOptions':
-      result = getTransportOptions(args.originArea ?? '');
-      break;
-    case 'getAmenity':
-      result = getAmenity(args.type ?? '', args.nearZone, accessibilityMode);
-      break;
-    case 'translateQuickPhrase':
-      result = translateQuickPhrase(args.phrase ?? '', args.targetLang ?? 'en');
-      break;
-    default:
-      result = { error: true, message: `Unknown tool: ${name}` };
-  }
+  const handler = handlers[name];
+  const result = handler 
+    ? handler(args as Record<string, string>, accessibilityMode) 
+    : { error: true, message: `Unknown tool: ${name}` };
 
   if (cacheKey && typeof result === 'object' && result !== null) {
     toolCache.set(cacheKey, result as Record<string, unknown>);

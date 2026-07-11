@@ -161,14 +161,14 @@ The app works immediately even without setting `GEMINI_API_KEY`.
 ### Problem Statement Coverage Matrix
 | Capability Area | Implementation File/Feature | Evidence |
 | --- | --- | --- |
-| **Navigation** | `lib/ai/tools.ts` (`findGate`) | Extracts section numbers and returns precise gate, level, and walking time using static venue data. |
-| **Crowd Management** | `lib/data/crowd-simulation.ts` | Uses deterministic PRNG to simulate density and wait times, prompting alternatives if crowded. |
-| **Accessibility** | `components/AccessibilityToggle.tsx` | Global UI toggle explicitly injects wheelchair routing requirements into the LLM system prompt. |
-| **Transportation** | `lib/ai/tools.ts` (`getTransportOptions`) | Sorts transit options by carbon footprint, prioritizing zero/low emission options. |
+| **Navigation** | `lib/ai/tools.ts` / UI: `ChatWindow.tsx` | Extracts section numbers and returns precise gate, level, and walking time using static venue data. See [SCENARIOS.md](./SCENARIOS.md) Scenario 1. |
+| **Crowd Management** | `lib/data/crowd-simulation.ts` | Uses deterministic PRNG to simulate density and wait times. Real-time updates shown in `LiveStadiumInsight.tsx`. |
+| **Accessibility** | `components/AccessibilityToggle.tsx` / `Header.tsx` | Global UI toggle injects wheelchair routing requirements into the LLM prompt. See Scenario 3. |
+| **Transportation** | `lib/ai/tools.ts` (`getTransportOptions`) | Sorts transit options by carbon footprint. See Scenario 4. |
 | **Sustainability** | `lib/ai/system-prompt.ts` | Explicitly instructs the AI to highlight greener options using a visible `[🌱 Greener Option]` badge. |
-| **Multilingual** | `components/LanguageSwitcher.tsx` | Next.js i18n switcher dynamically updates the system prompt language requirement. |
+| **Multilingual** | `components/LanguageSwitcher.tsx` / `Header.tsx` | Next.js i18n switcher dynamically updates the system prompt language requirement. See Scenario 5. |
 | **Operational Intelligence** | `components/LiveStadiumInsight.tsx` | Real-time UI panel aggregates crowd data across all gates to recommend the fastest entry point. |
-| **Real-Time Decision Support** | `lib/ai/system-prompt.ts` | AI is instructed to proactively offer alternate routing or waiting strategies when crowds are high. |
+| **Real-Time Decision Support** | `lib/ai/system-prompt.ts` | AI is instructed to proactively offer alternate routing or waiting strategies when crowds are high. See Scenario 2. |
 
 - **Real-Time Context**: Grounded in static stadium data (`venue.json`).
 - **Edge AI Ready**: Built with the `@google/generative-ai` SDK (Gemini 3.5 Pro).

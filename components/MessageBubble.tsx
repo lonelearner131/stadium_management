@@ -16,6 +16,8 @@ interface MessageBubbleProps {
   content: string;
   /** Accessibility label for screen readers */
   ariaLabel: string;
+  /** Tool calls made during this turn */
+  toolCalls?: Array<{ name: string; args: Record<string, unknown>; reason?: string }>;
 }
 
 /**
@@ -74,18 +76,15 @@ function renderInlineFormatting(text: string, keyPrefix: string): React.ReactNod
   let match: RegExpExecArray | null;
 
   while ((match = boldRegex.exec(text)) !== null) {
-    // Add text before the bold part
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
-    // Add the bold part
     parts.push(
       <strong key={`${keyPrefix}-b-${match.index}`}>{match[1]}</strong>
     );
     lastIndex = match.index + match[0].length;
   }
 
-  // Add remaining text
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
@@ -96,18 +95,32 @@ function renderInlineFormatting(text: string, keyPrefix: string): React.ReactNod
 /**
  * A single chat message bubble with formatting and accessibility.
  */
-function MessageBubbleInner({ role, content, ariaLabel }: MessageBubbleProps) {
+function MessageBubbleInner({ role, content, ariaLabel, toolCalls }: MessageBubbleProps) {
   const formattedContent = React.useMemo(() => {
     return role === 'assistant' ? renderFormattedText(content) : content;
   }, [role, content]);
 
   return (
-    <div
-      className={`message-bubble ${role}`}
-      role="article"
-      aria-label={ariaLabel}
-    >
-      {formattedContent}
+    <div className={`message-bubble-wrapper ${role}`}>
+      <div
+        className={`message-bubble ${role}`}
+        role="article"
+        aria-label={ariaLabel}
+      >
+        {formattedContent}
+      </div>
+      {role === 'assistant' && toolCalls && toolCalls.length > 0 && (
+        <details className="reasoning-trace" aria-label="AI reasoning trace">
+          <summary>🔍 Reasoning Trace</summary>
+          <ul className="reasoning-list">
+            {toolCalls.map((tc, idx) => (
+              <li key={idx}>
+                Invoked <strong>{tc.name}</strong>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import type { CrowdDensity } from '@/lib/data/crowd-simulation';
 
 interface CrowdBadgeProps {

@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { memo, useCallback, type ChangeEvent } from 'react';
+import { memo, useCallback, type ChangeEvent } from 'react';
 import { SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
 
 interface LanguageSwitcherProps {

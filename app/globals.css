@@ -446,6 +446,47 @@ a:hover {
   margin-bottom: var(--space-xs);
 }
 
+.message-bubble-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+.message-bubble-wrapper.user {
+  align-self: flex-end;
+}
+.message-bubble-wrapper.assistant {
+  align-self: flex-start;
+}
+.message-bubble-wrapper .message-bubble {
+  max-width: 100%;
+}
+
+.reasoning-trace {
+  margin-top: var(--space-xs);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  align-self: flex-start;
+}
+
+.reasoning-trace summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+}
+
+.reasoning-list {
+  list-style: none;
+  padding: var(--space-xs) 0 0 0;
+  margin: 0;
+}
+.reasoning-list li {
+  margin-bottom: 2px;
+}
+
 /* ---------- Typing Indicator ---------- */
 .typing-indicator {
   display: flex;

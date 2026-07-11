@@ -8,7 +8,7 @@ import {
   getAllCrowdStatuses,
 } from '@/lib/data/crowd-simulation';
 
-describe('getCrowdStatusForLocation', () => {
+describe('getCrowdStatusForLocation - basic formatting', () => {
   it('returns valid crowd status for a gate letter', () => {
     const status = getCrowdStatusForLocation('A');
     expect(['low', 'medium', 'high']).toContain(status.density);
@@ -30,6 +30,9 @@ describe('getCrowdStatusForLocation', () => {
     expect(upper.density).toBe(lower.density);
     expect(upper.percentage).toBe(lower.percentage);
   });
+});
+
+describe('getCrowdStatusForLocation - logic and determinism', () => {
 
   it('produces deterministic results for the same timestamp', () => {
     const timestamp = new Date('2026-06-14T15:00:00Z');
