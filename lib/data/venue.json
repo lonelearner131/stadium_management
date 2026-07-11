@@ -1,0 +1,235 @@
+{
+  "stadium": {
+    "name": "MetLife Stadium",
+    "location": "East Rutherford, New Jersey",
+    "capacity": 82500,
+    "event": "FIFA World Cup 2026",
+    "timezone": "America/New_York"
+  },
+  "gates": [
+    {
+      "id": "A",
+      "name": "Gate A – Main Entrance",
+      "zone": "north",
+      "sections": ["101", "102", "103", "104", "105", "106", "107", "108"],
+      "accessible": true,
+      "hasRamp": true,
+      "hasElevator": true,
+      "nearestParking": "Lot A",
+      "walkTimeMinutes": 3
+    },
+    {
+      "id": "B",
+      "name": "Gate B – East Entrance",
+      "zone": "east",
+      "sections": ["109", "110", "111", "112", "113", "114", "115", "116", "117"],
+      "accessible": true,
+      "hasRamp": true,
+      "hasElevator": true,
+      "nearestParking": "Lot B",
+      "walkTimeMinutes": 4
+    },
+    {
+      "id": "C",
+      "name": "Gate C – South Entrance",
+      "zone": "south",
+      "sections": ["118", "119", "120", "121", "122", "123", "124", "125"],
+      "accessible": true,
+      "hasRamp": true,
+      "hasElevator": false,
+      "nearestParking": "Lot C",
+      "walkTimeMinutes": 5
+    },
+    {
+      "id": "D",
+      "name": "Gate D – West Entrance",
+      "zone": "west",
+      "sections": ["126", "127", "128", "129", "130", "131", "132", "133", "134"],
+      "accessible": true,
+      "hasRamp": true,
+      "hasElevator": true,
+      "nearestParking": "Lot D",
+      "walkTimeMinutes": 3
+    }
+  ],
+  "sections": [
+    { "id": "101", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": true },
+    { "id": "102", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": true },
+    { "id": "103", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": false },
+    { "id": "104", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": false },
+    { "id": "105", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": false },
+    { "id": "106", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": false },
+    { "id": "107", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": true },
+    { "id": "108", "level": "lower", "zone": "north", "gate": "A", "accessible": true, "hasCompanionSeats": false },
+    { "id": "109", "level": "lower", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": false },
+    { "id": "110", "level": "lower", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": true },
+    { "id": "111", "level": "lower", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": false },
+    { "id": "112", "level": "lower", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": false },
+    { "id": "113", "level": "mid", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": true },
+    { "id": "114", "level": "mid", "zone": "east", "gate": "B", "accessible": true, "hasCompanionSeats": false },
+    { "id": "115", "level": "mid", "zone": "east", "gate": "B", "accessible": false, "hasCompanionSeats": false },
+    { "id": "116", "level": "upper", "zone": "east", "gate": "B", "accessible": false, "hasCompanionSeats": false },
+    { "id": "117", "level": "upper", "zone": "east", "gate": "B", "accessible": false, "hasCompanionSeats": false },
+    { "id": "118", "level": "lower", "zone": "south", "gate": "C", "accessible": true, "hasCompanionSeats": false },
+    { "id": "119", "level": "lower", "zone": "south", "gate": "C", "accessible": true, "hasCompanionSeats": true },
+    { "id": "120", "level": "lower", "zone": "south", "gate": "C", "accessible": true, "hasCompanionSeats": false },
+    { "id": "121", "level": "mid", "zone": "south", "gate": "C", "accessible": true, "hasCompanionSeats": false },
+    { "id": "122", "level": "mid", "zone": "south", "gate": "C", "accessible": true, "hasCompanionSeats": false },
+    { "id": "123", "level": "mid", "zone": "south", "gate": "C", "accessible": false, "hasCompanionSeats": false },
+    { "id": "124", "level": "upper", "zone": "south", "gate": "C", "accessible": false, "hasCompanionSeats": false },
+    { "id": "125", "level": "upper", "zone": "south", "gate": "C", "accessible": false, "hasCompanionSeats": false },
+    { "id": "126", "level": "lower", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": true },
+    { "id": "127", "level": "lower", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": false },
+    { "id": "128", "level": "lower", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": false },
+    { "id": "129", "level": "lower", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": false },
+    { "id": "130", "level": "mid", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": true },
+    { "id": "131", "level": "mid", "zone": "west", "gate": "D", "accessible": true, "hasCompanionSeats": false },
+    { "id": "132", "level": "mid", "zone": "west", "gate": "D", "accessible": false, "hasCompanionSeats": false },
+    { "id": "133", "level": "upper", "zone": "west", "gate": "D", "accessible": false, "hasCompanionSeats": false },
+    { "id": "134", "level": "upper", "zone": "west", "gate": "D", "accessible": false, "hasCompanionSeats": false }
+  ],
+  "accessibleRoutes": [
+    {
+      "id": "ar-1",
+      "from": "Gate A",
+      "to": "Section 101",
+      "description": "Ramped corridor from Gate A, level entry to Section 101. No stairs.",
+      "stepFree": true,
+      "estimatedMinutes": 2,
+      "landmarks": ["Information Desk", "Elevator Bank A"]
+    },
+    {
+      "id": "ar-2",
+      "from": "Gate A",
+      "to": "Section 107",
+      "description": "Use Elevator Bank A to concourse level, then follow accessible signage east.",
+      "stepFree": true,
+      "estimatedMinutes": 4,
+      "landmarks": ["Elevator Bank A", "Concession Stand N3"]
+    },
+    {
+      "id": "ar-3",
+      "from": "Gate B",
+      "to": "Section 113",
+      "description": "Take Elevator Bank B to mid-level, right turn at concessions to Section 113.",
+      "stepFree": true,
+      "estimatedMinutes": 5,
+      "landmarks": ["Elevator Bank B", "Family Restroom E1"]
+    },
+    {
+      "id": "ar-4",
+      "from": "Gate D",
+      "to": "Section 130",
+      "description": "Ramp from Gate D to lower concourse, then Elevator Bank D to mid-level.",
+      "stepFree": true,
+      "estimatedMinutes": 6,
+      "landmarks": ["Ramp D", "Elevator Bank D", "Water Refill Station W2"]
+    },
+    {
+      "id": "ar-5",
+      "from": "Gate C",
+      "to": "Section 119",
+      "description": "Level entry through Gate C, follow accessible path along south concourse.",
+      "stepFree": true,
+      "estimatedMinutes": 3,
+      "landmarks": ["Information Kiosk S1", "First Aid Station S1"]
+    },
+    {
+      "id": "ar-6",
+      "from": "Section 101",
+      "to": "Section 126",
+      "description": "Lower concourse ring path from north to west, fully accessible.",
+      "stepFree": true,
+      "estimatedMinutes": 8,
+      "landmarks": ["Concession Stand N1", "Restroom W1", "Sustainability Station W1"]
+    }
+  ],
+  "amenities": [
+    { "id": "am-1", "type": "restroom", "name": "Restroom N1", "zone": "north", "accessible": true, "level": "lower" },
+    { "id": "am-2", "type": "restroom", "name": "Restroom N2", "zone": "north", "accessible": false, "level": "upper" },
+    { "id": "am-3", "type": "restroom", "name": "Restroom E1", "zone": "east", "accessible": true, "level": "lower" },
+    { "id": "am-4", "type": "restroom", "name": "Family Restroom E1", "zone": "east", "accessible": true, "level": "mid", "familyFriendly": true },
+    { "id": "am-5", "type": "restroom", "name": "Restroom S1", "zone": "south", "accessible": true, "level": "lower" },
+    { "id": "am-6", "type": "restroom", "name": "Restroom W1", "zone": "west", "accessible": true, "level": "lower" },
+    { "id": "am-7", "type": "first_aid", "name": "First Aid Station N1", "zone": "north", "accessible": true, "level": "lower" },
+    { "id": "am-8", "type": "first_aid", "name": "First Aid Station S1", "zone": "south", "accessible": true, "level": "lower" },
+    { "id": "am-9", "type": "first_aid", "name": "First Aid Station W1", "zone": "west", "accessible": true, "level": "mid" },
+    { "id": "am-10", "type": "prayer_room", "name": "Prayer & Meditation Room N1", "zone": "north", "accessible": true, "level": "lower" },
+    { "id": "am-11", "type": "prayer_room", "name": "Prayer & Meditation Room S1", "zone": "south", "accessible": true, "level": "lower" },
+    { "id": "am-12", "type": "family_room", "name": "Family Room N1", "zone": "north", "accessible": true, "level": "lower", "features": ["nursing", "changing tables", "quiet space"] },
+    { "id": "am-13", "type": "family_room", "name": "Family Room E1", "zone": "east", "accessible": true, "level": "lower", "features": ["nursing", "changing tables"] },
+    { "id": "am-14", "type": "family_room", "name": "Family Room W1", "zone": "west", "accessible": true, "level": "lower", "features": ["nursing", "changing tables", "quiet space"] },
+    { "id": "am-15", "type": "water_refill", "name": "Water Refill Station N1", "zone": "north", "accessible": true, "level": "lower", "sustainability": true },
+    { "id": "am-16", "type": "water_refill", "name": "Water Refill Station E1", "zone": "east", "accessible": true, "level": "lower", "sustainability": true },
+    { "id": "am-17", "type": "water_refill", "name": "Water Refill Station S1", "zone": "south", "accessible": true, "level": "lower", "sustainability": true },
+    { "id": "am-18", "type": "water_refill", "name": "Water Refill Station W1", "zone": "west", "accessible": true, "level": "lower", "sustainability": true },
+    { "id": "am-19", "type": "water_refill", "name": "Water Refill Station W2", "zone": "west", "accessible": true, "level": "mid", "sustainability": true },
+    { "id": "am-20", "type": "sustainability_station", "name": "Recycling & Composting Hub N1", "zone": "north", "accessible": true, "level": "lower" },
+    { "id": "am-21", "type": "sustainability_station", "name": "Recycling & Composting Hub S1", "zone": "south", "accessible": true, "level": "lower" },
+    { "id": "am-22", "type": "sustainability_station", "name": "Sustainability Info Kiosk E1", "zone": "east", "accessible": true, "level": "lower" },
+    { "id": "am-23", "type": "sustainability_station", "name": "Sustainability Station W1", "zone": "west", "accessible": true, "level": "lower" }
+  ],
+  "parking": [
+    { "id": "lot-a", "name": "Lot A", "zone": "north", "nearestGate": "A", "accessible": true, "evCharging": true, "shuttleService": true },
+    { "id": "lot-b", "name": "Lot B", "zone": "east", "nearestGate": "B", "accessible": true, "evCharging": false, "shuttleService": true },
+    { "id": "lot-c", "name": "Lot C", "zone": "south", "nearestGate": "C", "accessible": true, "evCharging": false, "shuttleService": false },
+    { "id": "lot-d", "name": "Lot D", "zone": "west", "nearestGate": "D", "accessible": true, "evCharging": true, "shuttleService": true }
+  ],
+  "transit": [
+    {
+      "id": "tr-1",
+      "type": "train",
+      "name": "NJ Transit – Meadowlands Rail Line",
+      "zone": "east",
+      "nearestGate": "B",
+      "schedule": "Runs every 10 min on match days, from Secaucus Junction",
+      "accessible": true,
+      "carbonLabel": "low",
+      "walkToGateMinutes": 8
+    },
+    {
+      "id": "tr-2",
+      "type": "bus",
+      "name": "NJ Transit Bus 160",
+      "zone": "north",
+      "nearestGate": "A",
+      "schedule": "Runs every 15 min from Port Authority Bus Terminal",
+      "accessible": true,
+      "carbonLabel": "low",
+      "walkToGateMinutes": 10
+    },
+    {
+      "id": "tr-3",
+      "type": "shuttle",
+      "name": "Official FIFA Fan Shuttle",
+      "zone": "west",
+      "nearestGate": "D",
+      "schedule": "Runs every 5 min from designated pick-up zones, 3 hours before to 2 hours after match",
+      "accessible": true,
+      "carbonLabel": "low",
+      "walkToGateMinutes": 3
+    },
+    {
+      "id": "tr-4",
+      "type": "rideshare",
+      "name": "Rideshare Drop-off Zone",
+      "zone": "south",
+      "nearestGate": "C",
+      "schedule": "On demand",
+      "accessible": true,
+      "carbonLabel": "medium",
+      "walkToGateMinutes": 6
+    },
+    {
+      "id": "tr-5",
+      "type": "bicycle",
+      "name": "Bike Valet Station",
+      "zone": "north",
+      "nearestGate": "A",
+      "schedule": "Opens 4 hours before match",
+      "accessible": false,
+      "carbonLabel": "zero",
+      "walkToGateMinutes": 5
+    }
+  ]
+}
