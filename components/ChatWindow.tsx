@@ -17,6 +17,7 @@ import React, {
 } from 'react';
 import { MessageBubble } from '@/components/MessageBubble';
 import { QuickActionChips } from '@/components/QuickActionChips';
+import { LiveStadiumInsight } from '@/components/LiveStadiumInsight';
 import type { TranslationDictionary } from '@/lib/i18n';
 
 /** A message in the chat history */
@@ -264,6 +265,7 @@ export function ChatWindow({
         aria-atomic="false"
         aria-relevant="additions"
       >
+        <LiveStadiumInsight />
         {showWelcome && (
           <div className="welcome-screen">
             <div className="welcome-icon" aria-hidden="true">

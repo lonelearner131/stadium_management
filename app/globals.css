@@ -608,6 +608,86 @@ a:hover {
   cursor: not-allowed;
 }
 
+.quick-action-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Live Insight Panel                                                */
+/* ------------------------------------------------------------------ */
+.live-insight-panel {
+  margin: 1rem;
+  padding: 1rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-color);
+  animation: slideUp 0.3s ease-out;
+}
+
+.insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.insight-live-badge {
+  color: #ff4d4d;
+  font-size: 0.75rem;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+.insight-recommendation {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
+}
+
+.insight-card {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.insight-gate {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.insight-density {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.insight-density.low { color: #4ade80; }
+.insight-density.medium { color: #facc15; }
+.insight-density.high { color: #f87171; }
+
+.insight-wait {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
 .voice-btn {
   display: flex;
   align-items: center;

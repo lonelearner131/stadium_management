@@ -16,6 +16,7 @@ import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { GeminiProvider } from '@/lib/ai/gemini-provider';
 import { FallbackProvider } from '@/lib/ai/fallback-provider';
 import type { AIProvider, AIMessage } from '@/lib/ai/provider';
+import { normalizeError } from '@/lib/errors';
 
 /**
  * Selects the appropriate AI provider.
@@ -161,10 +162,9 @@ export async function POST(request: NextRequest): Promise<Response> {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
           }
         }
-      } catch (error: unknown) {
-        console.error('[Chat API] Stream error:', error);
-        const errorMsg = JSON.stringify({ type: 'error', content: 'An error occurred processing your request.' });
-        controller.enqueue(encoder.encode(`data: ${errorMsg}\n\n`));
+      } catch (err: unknown) {
+        const normalizedError = normalizeError(err);
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', content: normalizedError.message })}\n\n`));
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
       } finally {
         controller.close();

@@ -55,11 +55,11 @@ export const ChatRequestSchema = z.object({
     .optional(),
 });
 
-/** Type derived from the chat request schema */
+/** Inferred type for ChatRequest */
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
-/** Type derived from the session context schema */
+/** Inferred type for SessionContext */
 export type SessionContext = z.infer<typeof SessionContextSchema>;
 
-/** Type derived from the message schema */
+/** Inferred type for Message */
 export type Message = z.infer<typeof MessageSchema>;

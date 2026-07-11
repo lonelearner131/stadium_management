@@ -12,6 +12,7 @@
 import { GoogleGenerativeAI, SchemaType, type FunctionDeclaration, type FunctionDeclarationSchemaProperty } from '@google/generative-ai';
 import type { AIProvider, GenerateOptions, StreamChunk, ToolCall } from '@/lib/ai/provider';
 import { toolDefinitions, executeTool } from '@/lib/ai/tools';
+import { normalizeError } from '@/lib/errors';
 
 /**
  * Maps our tool parameter definitions to Google's FunctionDeclaration format.
@@ -148,13 +149,11 @@ export class GeminiProvider implements AIProvider {
       }
 
       yield { type: 'done' };
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown Gemini API error';
-      console.error('[GeminiProvider] Error:', errorMessage);
+    } catch (err: unknown) {
+      const normalizedError = normalizeError(err);
       yield {
         type: 'error',
-        content: `Gemini API error: ${errorMessage}`,
+        content: `Gemini API error: ${normalizedError.message}`,
       };
       yield { type: 'done' };
     }

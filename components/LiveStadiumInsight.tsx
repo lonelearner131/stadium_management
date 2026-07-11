@@ -1,0 +1,64 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { getAllCrowdStatuses, type CrowdStatus } from '@/lib/data/crowd-simulation';
+
+/**
+ * Live Stadium Insight panel
+ * Demonstrates Operational Intelligence by showing real-time aggregated crowd density
+ * across all gates, helping fans make informed decisions.
+ */
+export function LiveStadiumInsight() {
+  const [statuses, setStatuses] = useState<CrowdStatus[]>([]);
+  const [recommendation, setRecommendation] = useState('');
+
+  useEffect(() => {
+    // Polling simulation for live data every 10 seconds
+    const fetchInsight = () => {
+      const data = getAllCrowdStatuses();
+      setStatuses(data);
+
+      // Simple operational intelligence logic: find the least crowded gate
+      const lowWait = data.filter(d => d.density === 'low');
+      if (lowWait.length > 0) {
+        setRecommendation(`💡 Quickest Entry: Head to ${lowWait.map(d => d.location).join(' or ')} for fastest access.`);
+      } else {
+        const mediumWait = data.filter(d => d.density === 'medium');
+        if (mediumWait.length > 0) {
+          setRecommendation(`💡 Best Option: ${mediumWait[0].location} has moderate lines.`);
+        } else {
+          setRecommendation('💡 All gates are currently busy. Enjoy the concourse amenities while waiting.');
+        }
+      }
+    };
+
+    fetchInsight();
+    const interval = setInterval(fetchInsight, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (statuses.length === 0) return null;
+
+  return (
+    <div className="live-insight-panel" role="region" aria-label="Live Stadium Insight">
+      <div className="insight-header">
+        <span className="insight-title">📊 Live Stadium Insight</span>
+        <span className="insight-live-badge">● LIVE</span>
+      </div>
+      <div className="insight-content">
+        <p className="insight-recommendation">{recommendation}</p>
+        <div className="insight-grid">
+          {statuses.map((status) => (
+            <div key={status.location} className="insight-card">
+              <div className="insight-gate">{status.location}</div>
+              <div className={`insight-density ${status.density}`}>
+                {status.density === 'low' ? '🟢 Low' : status.density === 'medium' ? '🟡 Med' : '🔴 High'}
+              </div>
+              <div className="insight-wait">{status.estimatedWaitMinutes} min wait</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

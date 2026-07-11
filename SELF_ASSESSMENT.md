@@ -87,9 +87,17 @@ This document maps specific files and features to each evaluation criterion, wit
 ## High Impact Criteria
 
 ### Smart Dynamic Assistant
-- **Tool-based reasoning**: 6 callable tools that the AI decides when to invoke based on user context (section, zone, language, accessibility) — not pre-scripted responses.
-- **Context awareness**: Session context (accessibility mode, current zone, ticket section, language) influences every tool call.
-- **Evidence**: `lib/ai/tools.ts`, `lib/ai/system-prompt.ts`, `lib/ai/fallback-provider.ts`
+*See the **Problem Statement Coverage Matrix** in `README.md` for a concise mapping of features to capabilities.*
+
+This project implements the **"Fan Experience, Navigation & Accessibility"** vertical for the FIFA World Cup 2026.
+It is specifically designed for a spectator inside or approaching the stadium needing immediate, contextual help.
+
+The solution addresses the primary capabilities:
+- **Navigation/Wayfinding**: Implemented via `findGate` tool using static `venue.json` data.
+- **Accessibility**: First-class citizen via the global `AccessibilityToggle` and `getAccessibleRoute` tool.
+- **Multilingual**: `LanguageSwitcher` updates the AI's language directive in `buildSystemPrompt`.
+- **Sustainability/Transport**: `getTransportOptions` sorts by carbon footprint; AI applies a `[🌱 Greener Option]` badge.
+- **Operational Intelligence**: `LiveStadiumInsight` component aggregates crowd data for proactive decision support.
 
 ### Context-Based Decision-Making
 - **Accessibility bias**: When accessibility mode is on, findGate adds ramp/elevator info, getAmenity filters for accessible-only, and the system prompt instructs the AI to prefer step-free routes.
