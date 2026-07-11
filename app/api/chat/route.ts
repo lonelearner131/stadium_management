@@ -6,6 +6,8 @@
  * @module app/api/chat/route
  */
 
+export const runtime = 'edge';
+
 import { NextRequest } from 'next/server';
 import { ChatRequestSchema } from '@/lib/validation/schemas';
 import { sanitizeInput, sanitizeOutput } from '@/lib/sanitize';

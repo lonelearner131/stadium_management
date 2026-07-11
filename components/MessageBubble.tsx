@@ -97,13 +97,17 @@ function renderInlineFormatting(text: string, keyPrefix: string): React.ReactNod
  * A single chat message bubble with formatting and accessibility.
  */
 function MessageBubbleInner({ role, content, ariaLabel }: MessageBubbleProps) {
+  const formattedContent = React.useMemo(() => {
+    return role === 'assistant' ? renderFormattedText(content) : content;
+  }, [role, content]);
+
   return (
     <div
       className={`message-bubble ${role}`}
       role="article"
       aria-label={ariaLabel}
     >
-      {role === 'assistant' ? renderFormattedText(content) : content}
+      {formattedContent}
     </div>
   );
 }

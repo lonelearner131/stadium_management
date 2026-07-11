@@ -1,6 +1,10 @@
-import type { NextConfig } from "next";
+import createBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = {
+const withBundleAnalyzer = createBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+const nextConfig = {
   /**
    * Security headers applied to all routes.
    * See SECURITY.md for the full threat model.
@@ -54,4 +58,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

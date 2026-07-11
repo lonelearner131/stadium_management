@@ -37,7 +37,9 @@ function QuickActionChipsInner({
   onChipClick,
   disabled,
 }: QuickActionChipsProps) {
-  const chips = Object.entries(t.quickActions) as [string, string][];
+  const chips = React.useMemo(() => {
+    return Object.entries(t.quickActions) as [string, string][];
+  }, [t.quickActions]);
 
   return (
     <div className="quick-actions" role="toolbar" aria-label="Quick actions">

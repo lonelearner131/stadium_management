@@ -501,6 +501,11 @@ export function translateQuickPhrase(
 /*  Tool executor                                                      */
 /* ------------------------------------------------------------------ */
 
+import { SimpleCache } from '@/lib/cache';
+
+// Initialize a cache for deterministic tool results (1 hour TTL)
+const toolCache = new SimpleCache<Record<string, unknown>>(1000, 60 * 60 * 1000);
+
 /**
  * Executes a tool call and returns the result.
  * This is the central dispatcher for all tool invocations.
@@ -514,6 +519,17 @@ export function executeTool(
   accessibilityMode = false
 ): ToolResult {
   const { name, args } = toolCall;
+
+  // Determine if this tool is deterministic and cacheable
+  const isCacheable = ['findGate', 'getAccessibleRoute', 'getTransportOptions', 'getAmenity'].includes(name);
+  const cacheKey = isCacheable ? `${name}-${JSON.stringify(args)}-${accessibilityMode}` : null;
+
+  if (cacheKey) {
+    const cachedResult = toolCache.get(cacheKey);
+    if (cachedResult) {
+      return { toolName: name, result: cachedResult };
+    }
+  }
 
   let result: unknown;
 
@@ -538,6 +554,10 @@ export function executeTool(
       break;
     default:
       result = { error: true, message: `Unknown tool: ${name}` };
+  }
+
+  if (cacheKey && typeof result === 'object' && result !== null) {
+    toolCache.set(cacheKey, result as Record<string, unknown>);
   }
 
   return { toolName: name, result };
