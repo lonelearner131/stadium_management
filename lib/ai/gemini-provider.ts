@@ -9,7 +9,7 @@
  * @module ai/gemini-provider
  */
 
-import { GoogleGenerativeAI, type FunctionDeclarationSchemaProperty } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, type FunctionDeclaration, type FunctionDeclarationSchemaProperty } from '@google/generative-ai';
 import type { AIProvider, GenerateOptions, StreamChunk, ToolCall } from '@/lib/ai/provider';
 import { toolDefinitions, executeTool } from '@/lib/ai/tools';
 
@@ -23,24 +23,22 @@ function toGeminiTools() {
         name: tool.name,
         description: tool.description,
         parameters: {
-          type: tool.parameters.type.toUpperCase() as 'OBJECT',
+          type: tool.parameters.type.toUpperCase() === 'OBJECT' ? SchemaType.OBJECT : SchemaType.STRING,
           properties: Object.fromEntries(
-            Object.entries(
-              tool.parameters.properties as Record<
-                string,
-                { type: string; description: string }
-              >
-            ).map(([key, val]) => [
-              key,
-              {
-                type: val.type.toUpperCase(),
-                description: val.description,
-              } as FunctionDeclarationSchemaProperty,
-            ])
+            Object.entries(tool.parameters.properties || {}).map(([key, val]) => {
+              const v = val as { type: string; description: string };
+              return [
+                key,
+                {
+                  type: v.type.toUpperCase() === 'STRING' ? SchemaType.STRING : SchemaType.OBJECT,
+                  description: v.description,
+                } as FunctionDeclarationSchemaProperty,
+              ];
+            })
           ),
           required: tool.parameters.required,
         },
-      })),
+      } as FunctionDeclaration)),
     },
   ];
 }
