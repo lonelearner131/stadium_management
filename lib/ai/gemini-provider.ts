@@ -82,7 +82,7 @@ export class GeminiProvider implements AIProvider {
     try {
       const genAI = new GoogleGenerativeAI(this.apiKey);
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.5-flash',
         systemInstruction: options.systemPrompt,
         tools: toGeminiTools(),
       });
